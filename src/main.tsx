@@ -8,9 +8,9 @@ import App from './App.tsx'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // How long data stays fresh before refetching
+
       staleTime: 1000 * 60 * 5, // 5 minutes
-      // How long unused data stays in cache
+
     },
   },
 })

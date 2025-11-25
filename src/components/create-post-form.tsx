@@ -151,7 +151,7 @@ export const CreatePostForm = () => {
       
       {/* Form element - onSubmit calls handleSubmit which validates then calls onSubmit */}
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        {/* Title input field */}
+       
         <div>
           <Label htmlFor="title" style={{ fontSize: '0.875rem', fontWeight: '600', color: '#e5e5e5', display: 'block', marginBottom: '0.5rem' }}>
             Title
@@ -173,14 +173,13 @@ export const CreatePostForm = () => {
               },
             })}
             placeholder="Enter post title"
-            aria-invalid={errors.title ? 'true' : 'false'} // Accessibility: mark invalid fields
+            aria-invalid={errors.title ? 'true' : 'false'} 
             style={{
               background: '#2a2a2a',
               border: errors.title ? '2px solid #dc2626' : '2px solid #5a5a5a',
               color: '#ffffff',
             }}
           />
-          {/* Display validation error if title is invalid */}
           {errors.title && (
             <p style={{ 
               color: '#dc2626', 

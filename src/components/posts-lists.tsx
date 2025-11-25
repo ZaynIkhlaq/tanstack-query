@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchPosts, deletePost, updatePost, type Post, type UpdatePost } from '../services/posts-api'
-import { Button } from './ui/button' //using shadcn button over here
+import { Button } from './ui/button' //using shadcn components over here
 import { Badge } from './ui/badge'
 import { Skeleton } from './ui/skeleton'
 import { Separator } from './ui/separator'
@@ -17,6 +17,7 @@ export const PostsList = () => {
   
   const queryClient = useQueryClient()
   
+  // using SCREAMING_SNAKE convention
   const TOTAL_POSTS = 100
   const POSTS_PER_PAGE = 5 
   const TOTAL_PAGES = Math.ceil(TOTAL_POSTS / POSTS_PER_PAGE)
@@ -46,7 +47,7 @@ export const PostsList = () => {
       toast.success('Post updated successfully!')
     },
     onError: (error) => {
-      // Show error toast notification
+      
       toast.error(`Error: ${error.message}`)
     },
   })
@@ -68,9 +69,9 @@ export const PostsList = () => {
 
   // Function to start editing a post
   const handleEdit = (post: Post) => {
-    // Set the post ID being edited
+    
     setEditingPostId(post.id)
-    // Initialize the edit form with the current post data
+
     setEditFormData({
       title: post.title,
       body: post.body,

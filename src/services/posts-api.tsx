@@ -46,3 +46,42 @@ export const createPost = async (newPost: CreatePost): Promise<Post> => {
   
   return response.json() 
 }
+
+// Update post 
+export interface UpdatePost {
+  title: string
+  body: string
+  userId: number
+}
+
+export const updatePost = async (postId: number, updatedPost: UpdatePost): Promise<Post> => {
+  const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`, {
+    method: 'PUT', // specify PUT method for updates
+    headers: {
+      'Content-Type': 'application/json', 
+    },
+    body: JSON.stringify({
+      id: postId, // Include the post ID in the body
+      ...updatedPost, // using spread operator again
+    }), 
+  })
+  
+  if (!response.ok) {
+    throw new Error('Failed to update post')
+  }
+  
+  return response.json() 
+}
+
+// Delete Post
+// This function sends a DELETE request to remove a post by its ID
+export const deletePost = async (postId: number): Promise<void> => {
+  const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`, {
+    method: 'DELETE', // specify DELETE method
+  })
+  
+  if (!response.ok) {
+    throw new Error('Failed to delete post')
+  }
+  
+}

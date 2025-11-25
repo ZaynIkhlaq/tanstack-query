@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createPost, type CreatePost } from '../services/posts-api'
@@ -8,13 +8,6 @@ import { Input } from './ui/input'
 import { Textarea } from './ui/textarea'
 import { Label } from './ui/label'
 import { Separator } from './ui/separator'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select'
 import { useFormStore } from '../stores/form-store'
 
 export const CreatePostForm = () => {
@@ -33,7 +26,6 @@ export const CreatePostForm = () => {
     handleSubmit, // Function to handle form submission
     reset, // Function to reset the form
     watch, // Function to watch form values as they change
-    control, // Controller for complex inputs like Select
     formState: { errors }, // Object containing validation errors
   } = useForm<CreatePost>({
     // Use persisted values from Zustand store as default values
@@ -209,45 +201,41 @@ export const CreatePostForm = () => {
           )}
         </div>
 
-        {/* User ID select field */}
+        {/* User ID input field */}
         <div>
           <Label htmlFor="userId" style={{ fontSize: '0.875rem', fontWeight: '600', color: '#e5e5e5', display: 'block', marginBottom: '0.5rem' }}>
             User ID
           </Label>
-          <Controller
-            name="userId"
-            control={control}
-            rules={{
+          <Input
+            id="userId"
+            type="number"
+            {...register('userId', {
               required: 'User ID is required', // Validation rule: must be filled
+              valueAsNumber: true, // Convert string to number
+              min: {
+                value: 1,
+                message: 'User ID must be at least 1', // Custom error message
+              },
+              max: {
+                value: 10,
+                message: 'User ID must be at most 10', // JSONPlaceholder has 10 users
+              },
+              validate: (value) => {
+                // Ensure it's a valid integer
+                if (!Number.isInteger(Number(value))) {
+                  return 'User ID must be a whole number'
+                }
+                return true
+              },
+            })}
+            placeholder="1-10"
+            aria-invalid={errors.userId ? 'true' : 'false'} // Accessibility: mark invalid fields
+            style={{ 
+              maxWidth: '150px',
+              background: '#2a2a2a',
+              border: errors.userId ? '2px solid #dc2626' : '2px solid #5a5a5a',
+              color: '#ffffff',
             }}
-            render={({ field }) => (
-              <Select
-                value={field.value?.toString()}
-                onValueChange={(value) => {
-                  field.onChange(Number(value))
-                  setUserId(Number(value))
-                }}
-              >
-                <SelectTrigger
-                  id="userId"
-                  style={{ 
-                    maxWidth: '200px',
-                    background: '#2a2a2a',
-                    border: errors.userId ? '2px solid #dc2626' : '2px solid #5a5a5a',
-                    color: '#ffffff',
-                  }}
-                >
-                  <SelectValue placeholder="Select User" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 10 }, (_, i) => (
-                    <SelectItem key={i + 1} value={(i + 1).toString()}>
-                      User {i + 1}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
           />
           {/* Display validation error if userId is invalid */}
           {errors.userId && (

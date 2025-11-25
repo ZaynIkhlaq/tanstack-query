@@ -11,19 +11,6 @@ export const CreatePostForm = () => {
   // We use it to refresh the posts list after creating a new post
   const queryClient = useQueryClient()
 
-  // useMutation handles POST, PUT, DELETE operations (mutations)
-  // It returns a mutate function and status information
-  const mutation = useMutation({
-    mutationFn: createPost, // The function that creates the post
-    onSuccess: () => {
-      // After successfully creating a post, refresh the posts list
-      // invalidateQueries tells React Query to refetch data for matching queries
-      queryClient.invalidateQueries({ queryKey: ['posts'] })
-      // Reset the form after successful submission
-      reset()
-    },
-  })
-
   // useForm is a hook from react-hook-form that manages form state
   // It returns methods and properties to handle form submission and validation
   const {
@@ -36,6 +23,27 @@ export const CreatePostForm = () => {
       title: '',
       body: '',
       userId: 1, // Default user ID
+    },
+    // Validation mode: validate on change and on blur for better UX
+    mode: 'onChange', // Validate as user types
+    reValidateMode: 'onChange', // Re-validate on change after first submission
+  })
+
+  // useMutation handles POST, PUT, DELETE operations (mutations)
+  // It returns a mutate function and status information
+  const mutation = useMutation({
+    mutationFn: createPost, // The function that creates the post
+    onSuccess: () => {
+      // After successfully creating a post, refresh the posts list
+      // invalidateQueries tells React Query to refetch data for matching queries
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+      // Reset the form after successful submission
+      // Pass defaultValues to ensure form resets properly
+      reset({
+        title: '',
+        body: '',
+        userId: 1,
+      })
     },
   })
 
@@ -78,12 +86,19 @@ export const CreatePostForm = () => {
                 value: 3,
                 message: 'Title must be at least 3 characters', // Custom error message
               },
+              validate: (value) => {
+                // Additional validation: trim whitespace
+                if (value.trim().length < 3) {
+                  return 'Title must be at least 3 characters (excluding spaces)'
+                }
+                return true
+              },
             })}
             placeholder="Enter post title"
             aria-invalid={errors.title ? 'true' : 'false'} // Accessibility: mark invalid fields
             style={{
               background: '#2a2a2a',
-              border: '2px solid #5a5a5a',
+              border: errors.title ? '2px solid #dc2626' : '2px solid #5a5a5a',
               color: '#ffffff',
             }}
           />
@@ -113,13 +128,20 @@ export const CreatePostForm = () => {
                 value: 10,
                 message: 'Body must be at least 10 characters', // Custom error message
               },
+              validate: (value) => {
+                // Additional validation: trim whitespace
+                if (value.trim().length < 10) {
+                  return 'Body must be at least 10 characters (excluding spaces)'
+                }
+                return true
+              },
             })}
             placeholder="Enter post body"
             rows={5}
             aria-invalid={errors.body ? 'true' : 'false'} // Accessibility: mark invalid fields
             style={{
               background: '#2a2a2a',
-              border: '2px solid #5a5a5a',
+              border: errors.body ? '2px solid #dc2626' : '2px solid #5a5a5a',
               color: '#ffffff',
             }}
           />
@@ -155,13 +177,20 @@ export const CreatePostForm = () => {
                 value: 10,
                 message: 'User ID must be at most 10', // JSONPlaceholder has 10 users
               },
+              validate: (value) => {
+                // Ensure it's a valid integer
+                if (!Number.isInteger(Number(value))) {
+                  return 'User ID must be a whole number'
+                }
+                return true
+              },
             })}
             placeholder="1-10"
             aria-invalid={errors.userId ? 'true' : 'false'} // Accessibility: mark invalid fields
             style={{ 
               maxWidth: '150px',
               background: '#2a2a2a',
-              border: '2px solid #5a5a5a',
+              border: errors.userId ? '2px solid #dc2626' : '2px solid #5a5a5a',
               color: '#ffffff',
             }}
           />
@@ -190,7 +219,7 @@ export const CreatePostForm = () => {
           </Button>
         </div>
 
-        {/* Display success message */}
+        {/* Display success message - auto-hide after 3 seconds */}
         {mutation.isSuccess && (
           <div style={{ 
             padding: '0.75rem 1rem', 
@@ -200,6 +229,7 @@ export const CreatePostForm = () => {
             border: '1px solid #10b981',
             fontSize: '0.875rem',
             fontWeight: '500',
+            animation: 'fadeIn 0.3s ease',
           }}>
             ✓ Post created successfully!
           </div>

@@ -25,11 +25,20 @@ export const PostsList = () => {
   return (
     <div>
       <h2>Posts</h2>
-      <ul>
+      <ul style={{ listStyle: 'none', padding: 0 }}>
         {data?.map((post) => (
-          <li key={post.id}>
+          <li key={post.id} style={{ marginBottom: '2rem', border: '1px solid #ccc', padding: '1rem', borderRadius: '8px' }}>
             <h3>{post.title}</h3>
-            <p>{post.body}</p>
+            {/* Display the thumbnail image */}
+            {/* The img tag's src attribute points to the image URL */}
+            {/* alt provides text description for accessibility */}
+            <img 
+              src={post.thumbnailUrl} 
+              alt={post.title}
+              style={{ maxWidth: '150px', height: 'auto', borderRadius: '4px', marginTop: '0.5rem' }}
+            />
+            {/* Optionally display the full-size image URL as a link */}
+            {post.body && <p>{post.body}</p>}
           </li>
         ))}
       </ul>

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createPost, type CreatePost } from '../services/posts-api'
@@ -5,11 +6,16 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Textarea } from './ui/textarea'
 import { Label } from './ui/label'
+import { useFormStore } from '../stores/form-store'
 
 export const CreatePostForm = () => {
   // useQueryClient gives us access to the query client
   // We use it to refresh the posts list after creating a new post
   const queryClient = useQueryClient()
+
+  // Get form data and actions from Zustand store
+  // This store persists data to localStorage automatically
+  const { formData, setTitle, setBody, setUserId, clearForm } = useFormStore()
 
   // useForm is a hook from react-hook-form that manages form state
   // It returns methods and properties to handle form submission and validation
@@ -17,17 +23,40 @@ export const CreatePostForm = () => {
     register, // Function to register form inputs
     handleSubmit, // Function to handle form submission
     reset, // Function to reset the form
+    watch, // Function to watch form values as they change
     formState: { errors }, // Object containing validation errors
   } = useForm<CreatePost>({
+    // Use persisted values from Zustand store as default values
+    // This restores the form when the page refreshes
     defaultValues: {
-      title: '',
-      body: '',
-      userId: 1, // Default user ID
+      title: formData.title,
+      body: formData.body,
+      userId: formData.userId, 
     },
     // Validation mode: validate on change and on blur for better UX
     mode: 'onChange', // Validate as user types
     reValidateMode: 'onChange', // Re-validate on change after first submission
   })
+
+  // Watch form values and sync them to Zustand store
+  // This saves the form data as the user types
+  const titleValue = watch('title')
+  const bodyValue = watch('body')
+  const userIdValue = watch('userId')
+
+  // useEffect runs whenever the watched values change
+  // It updates the Zustand store, which automatically saves to localStorage
+  useEffect(() => {
+    setTitle(titleValue)
+  }, [titleValue, setTitle])
+
+  useEffect(() => {
+    setBody(bodyValue)
+  }, [bodyValue, setBody])
+
+  useEffect(() => {
+    setUserId(userIdValue)
+  }, [userIdValue, setUserId])
 
   // useMutation handles POST, PUT, DELETE operations (mutations)
   // It returns a mutate function and status information
@@ -44,6 +73,9 @@ export const CreatePostForm = () => {
         body: '',
         userId: 1,
       })
+      // Also clear the persisted form data in Zustand store
+      // This ensures localStorage is cleared after successful submission
+      clearForm()
     },
   })
 

@@ -1,42 +1,39 @@
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchPosts } from '../services/posts-api'
-import { Button } from './ui/button'
+import { Button } from './ui/button' //using shadcn button over here
+import { usePaginationStore } from '../stores/pagination-store'
 
 export const PostsList = () => {
-  // State to track the current page number
-  // useState returns an array: [currentValue, setterFunction]
-  // We start at page 1 (first page)
-  const [page, setPage] = useState(1)
+  // Get current page and setter from Zustand store
+  // This store persists the page number to localStorage automatically
+  const { currentPage: page, setCurrentPage } = usePaginationStore()
   
-  // Total number of posts available (JSONPlaceholder has 100 posts)
-  const totalPosts = 100
-  const postsPerPage = 5
-  // Calculate total pages: divide total posts by posts per page, round up
-  const totalPages = Math.ceil(totalPosts / postsPerPage)
+  // using SCREAMING_SNAKE convention for all hardcoded const
+  const TOTAL_POSTS = 100
+  const POSTS_PER_PAGE = 5 
+  const TOTAL_PAGES = Math.ceil(TOTAL_POSTS / POSTS_PER_PAGE)
 
-  // useQuery is a hook that fetches and manages data
-  // It takes two arguments:
-  // 1. A query key (unique identifier for this query) - includes page number for caching
-  // 2. A query function (the function that fetches the data) - passes page number
+
   const { data, isLoading, error, isError } = useQuery({
     queryKey: ['posts', page], // Include page in key so each page is cached separately
-    queryFn: () => fetchPosts(page, postsPerPage), // Pass page and limit to fetchPosts
+    queryFn: () => fetchPosts(page, POSTS_PER_PAGE), 
   })
 
   // Function to go to the previous page
   const goToPreviousPage = () => {
     // Only go back if we're not on the first page
     if (page > 1) {
-      setPage(page - 1) // Decrease page number by 1
+      // Update the page in Zustand store, which automatically saves to localStorage
+      setCurrentPage(page - 1) // Decrease page number by 1
     }
   }
 
   // Function to go to the next page
   const goToNextPage = () => {
     // Only go forward if we're not on the last page
-    if (page < totalPages) {
-      setPage(page + 1) // Increase page number by 1
+    if (page < TOTAL_PAGES) {
+      // Update the page in Zustand store, which automatically saves to localStorage
+      setCurrentPage(page + 1) // Increase page number by 1
     }
   }
 
@@ -56,7 +53,7 @@ export const PostsList = () => {
       <h2>Posts</h2>
       {/* Display current page information */}
       <p style={{ color: '#666', marginBottom: '1rem' }}>
-        Page {page} of {totalPages}
+        Page {page} of {TOTAL_PAGES}
       </p>
       
       {/* List of posts */}
@@ -71,8 +68,6 @@ export const PostsList = () => {
           </li>
         ))}
       </ul>
-
-      {/* Pagination controls at the bottom */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'center', 
@@ -81,7 +76,6 @@ export const PostsList = () => {
         marginTop: '2rem',
         padding: '1rem'
       }}>
-        {/* Previous button - disabled on first page */}
         <Button 
           onClick={goToPreviousPage} 
           disabled={page === 1}
@@ -92,13 +86,13 @@ export const PostsList = () => {
         
         {/* Display current page number */}
         <span style={{ fontSize: '1rem', fontWeight: '500' }}>
-          Page {page} of {totalPages}
+          Page {page} of {TOTAL_PAGES}
         </span>
         
         {/* Next button - disabled on last page */}
         <Button 
           onClick={goToNextPage} 
-          disabled={page === totalPages}
+          disabled={page === TOTAL_PAGES}
           variant="outline"
         >
           Next

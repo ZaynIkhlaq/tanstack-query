@@ -1,8 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { createPost, type CreatePost } from '../services/posts-api'
+import { createPost, deletePost, type CreatePost } from '../services/posts-api'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Textarea } from './ui/textarea'
@@ -60,6 +60,10 @@ export const CreatePostForm = () => {
     setUserId(userIdValue)
   }, [userIdValue, setUserId])
 
+  // State to track the post ID to delete
+  // This is separate from the form since it's not part of the create post form
+  const [deletePostId, setDeletePostId] = useState<string>('')
+
   // useMutation handles POST, PUT, DELETE operations (mutations)
   // It returns a mutate function and status information
   const mutation = useMutation({
@@ -87,10 +91,41 @@ export const CreatePostForm = () => {
     },
   })
 
+  // useMutation for delete operation
+  // This handles DELETE requests to remove posts
+  const deleteMutation = useMutation({
+    mutationFn: deletePost, // The function that deletes the post
+    onSuccess: () => {
+      // After successfully deleting a post, refresh the posts list
+      // invalidateQueries tells React Query to refetch data for matching queries
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+      // Clear the delete input field
+      setDeletePostId('')
+      // Show success toast notification
+      toast.success('Post deleted successfully!')
+    },
+    onError: (error) => {
+      // Show error toast notification
+      toast.error(`Error: ${error.message}`)
+    },
+  })
+
   // This function runs when the form is submitted
   const onSubmit = (data: CreatePost) => {
     // Call mutation.mutate to trigger the POST request
     mutation.mutate(data)
+  }
+
+  // Function to handle delete button click
+  const handleDelete = () => {
+    // Validate that a post ID was entered
+    const postId = parseInt(deletePostId, 10)
+    if (!deletePostId || isNaN(postId) || postId < 1) {
+      toast.error('Please enter a valid post ID')
+      return
+    }
+    // Call deleteMutation.mutate to trigger the DELETE request
+    deleteMutation.mutate(postId)
   }
 
   return (
@@ -262,6 +297,55 @@ export const CreatePostForm = () => {
           </Button>
         </div>
       </form>
+
+      {/* Delete Post Section */}
+      <Separator style={{ marginTop: '2rem', marginBottom: '1.5rem', background: '#5a5a5a' }} />
+      
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <h3 style={{ 
+          fontSize: '1rem', 
+          fontWeight: '600', 
+          marginBottom: '0.5rem',
+          color: '#ffffff',
+        }}>
+          Delete Post
+        </h3>
+        
+        {/* Delete post input and button */}
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+          <div style={{ flex: 1 }}>
+            <Label htmlFor="deletePostId" style={{ fontSize: '0.875rem', fontWeight: '600', color: '#e5e5e5', display: 'block', marginBottom: '0.5rem' }}>
+              Post ID to Delete
+            </Label>
+            <Input
+              id="deletePostId"
+              type="number"
+              value={deletePostId}
+              onChange={(e) => setDeletePostId(e.target.value)}
+              placeholder="Enter post ID"
+              style={{ 
+                maxWidth: '200px',
+                background: '#2a2a2a',
+                border: '2px solid #5a5a5a',
+                color: '#ffffff',
+              }}
+            />
+          </div>
+          
+          {/* Delete button - positioned next to the Create Post button area */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', paddingTop: '1.75rem' }}>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending || !deletePostId}
+              style={{ minWidth: '140px' }}
+            >
+              {/* Show loading state while deleting post */}
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
